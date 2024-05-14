@@ -1,13 +1,30 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"subscription-management/routes"
+
+	"github.com/spf13/viper"
 )
 
+func initConfig() {
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(".")
+
+	if err := viper.ReadInConfig(); err != nil {
+		log.Fatalf("Error reading config file, %s", err)
+	}
+}
+
 func main() {
+	initConfig()
+
+	port := viper.GetString("server.port")
 	router := routes.InitRoutes()
-	log.Println("Server running on port 8080")
-	log.Fatal(http.ListenAndServe(":8080", router))
+
+	log.Printf("Server running on port %s", port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), router))
 }
