@@ -1,13 +1,15 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"net/http"
+	"subscription-management/handlers"
 	"subscription-management/routes"
 	"subscription-management/utils"
 
 	"github.com/spf13/viper"
+	"go.uber.org/fx"
+	"go.uber.org/fx/fxevent"
+	"go.uber.org/zap"
 )
 
 func initConfig() {
@@ -22,11 +24,26 @@ func initConfig() {
 
 func main() {
 	initConfig()
-	utils.InitRedis()
+	utils.InitLogger()
+	logger := utils.GetLogger()
 
-	port := viper.GetString("server.port")
-	router := routes.InitRoutes()
+	app := fx.New(
+		fx.Provide(
+			utils.NewRedisClient,
+			routes.NewRouter,
+			handlers.NewAdminHandler,
+			func() *zap.Logger {
+				return logger
+			},
+		),
+		fx.Invoke(
+			routes.RegisterRoutes,
+		),
+		fx.WithLogger(func(logger *zap.Logger) fxevent.Logger {
+			return &fxevent.ZapLogger{Logger: logger}
+		}),
+	)
 
-	log.Printf("Server running on port %s", port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), router))
+	app.Run()
+	utils.SyncLogger()
 }

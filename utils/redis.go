@@ -5,20 +5,27 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/spf13/viper"
+	"go.uber.org/fx"
 )
 
 var ctx = context.Background()
-var rdb *redis.Client
 
-func InitRedis() {
-	rdb = redis.NewClient(&redis.Options{
+func NewRedisClient(lc fx.Lifecycle) *redis.Client {
+	rdb := redis.NewClient(&redis.Options{
 		Addr:     viper.GetString("redis.address"),
 		Password: viper.GetString("redis.password"),
 		DB:       viper.GetInt("redis.db"),
 	})
-}
 
-func GetRedisClient() *redis.Client {
+	lc.Append(fx.Hook{
+		OnStart: func(ctx context.Context) error {
+			return nil
+		},
+		OnStop: func(ctx context.Context) error {
+			return rdb.Close()
+		},
+	})
+
 	return rdb
 }
 
