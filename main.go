@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"subscription-management/routes"
+	"subscription-management/utils"
 
 	"github.com/spf13/viper"
 )
@@ -21,6 +22,7 @@ func initConfig() {
 
 func main() {
 	initConfig()
+	utils.InitRedis()
 
 	port := viper.GetString("server.port")
 	router := routes.InitRoutes()

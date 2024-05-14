@@ -19,10 +19,10 @@ func GetUserByUsername(username string) *models.User {
 	return nil
 }
 
-func UpdateUser(user models.User) {
-	for i, u := range users {
-		if u.ID == user.ID {
-			users[i] = user
+func UpdateUser(updatedUser models.User) {
+	for i, user := range users {
+		if user.ID == updatedUser.ID {
+			users[i] = updatedUser
 			return
 		}
 	}
